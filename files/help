@@ -12,8 +12,12 @@ print <file_name_here>
     - view the file in the current directory
 contact - view my contact info
 
-Navigation:
+Navigation (Shell-like commands):
 
 pwd - show your current directory
-cd - change your directory
+cd 
+    - change your current directory
+    - examples: 
+        `cd /` goes back to top dir
+        `cd ..` goes up one dir
 ls - show the contents of your current directory

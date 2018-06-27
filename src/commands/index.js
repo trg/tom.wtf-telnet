@@ -2,10 +2,17 @@ const fs = require('fs');
 
 const writeFileContents = require('../utils').writeFileContents;
 
-const sanitizedPath = (pwd, filename = undefined) => {
+
+// TODO refactor validation into socket prototype (probably)
+const sanitizePathInput = (input) => {
     // TODO - better verison of this
-    pwd = pwd.replace(/./g, '');
-    pwd = pwd.replace(/\//g, '');
+    input = input.replace(/\./g, ''); // no dots allowed (hidden files, parent directory traversal)
+    return input;
+}
+
+const sanitizedPath = (pwd, filename = undefined) => {
+    pwd = sanitizePathInput(pwd);
+    if (filename) filename = sanitizePathInput(filename)
     return `files/root${pwd}${ filename ? '/' + filename : ''}`;
 }
 
@@ -20,14 +27,14 @@ const commands = {
             // TODO performance improve:
             const dirNames = fileOrDirNames.filter(f => fs.lstatSync(`${dir}/${f}`).isDirectory());
             const fileNames = fileOrDirNames.filter(f => fs.lstatSync(`${dir}/${f}`).isFile());
-            if (dirNames) {
+            if (dirNames.length > 0) {
                 socket.println('Directories:');
                 for (let dirName of dirNames) {
-                    socket.println(`${dirName}/`);
+                    socket.println(`${dirName}`);
                 }
                 socket.println('');
             }
-            if (fileNames) {
+            if (fileNames.length > 0) {
                 socket.println('Files:');
                 for (let fileName of fileNames) {
                     socket.println(fileName);
@@ -37,9 +44,24 @@ const commands = {
         });
     },
     "print": (socket, args) => {
-        const path = `root/${socket.env.pwd.substring(1)}${args[0]}`; // TODO Security
-        console.log("path", path);
+        if (args.length !== 1) return;
+        const fileName = sanitizePathInput(args[0]);
+        const path = `root${socket.env.pwd}${fileName}`;
         writeFileContents(socket, path);
+    },
+    "cd": (socket, args) => {
+        if (args.length !== 1) return;
+        const desiredDir = args[0];
+        if (desiredDir === '/') {
+            socket.env.pwd = '/';
+        } else if (desiredDir === '..' && socket.env.pwd !== '/') {
+            const parts = socket.env.pwd.split('/').filter(n => n !== '')
+            parts.pop();
+            socket.env.pwd = '/' + parts.join('/');
+        } else {
+            socket.env.pwd = `${socket.env.pwd}${sanitizePathInput(desiredDir)}/`;
+        }
+        socket.printMessage(`Your current directory is now ${socket.env.pwd}`);
     },
     "help": (socket) => {
         writeFileContents(socket, 'help');
