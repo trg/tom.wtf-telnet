@@ -12,7 +12,6 @@
   "license": "ISC",
   "dependencies": {
     "lodash": "^4.17.10",
-    "nodemon": "^1.17.5",
-    "uuid": "^3.3.0"
+    "nodemon": "^1.17.5"
   }
 }

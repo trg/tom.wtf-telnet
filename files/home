@@ -8,6 +8,8 @@ __      _____| | ___ ___  _ __ ___   ___
                                                        
 Welcome to tom.wtf; telnet edition.
 
+Please note this is not an encrypted connection!
+
 Quick Start commands:
-help - more help
-quit - quit
+help - prints a help message
+quit - exits this telnet session

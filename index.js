@@ -1,59 +1,29 @@
 const net = require('net');
-const findIndex = require('lodash/findIndex');
 
-const { cleanInput, writeFileContents } = require('./utils');
+const { cleanInput, writeFileContents } = require('./src/utils');
+const sessionManager = require('./src/session-manager');
+const processCommand = require('./src/commands').processCommand;
 
 // Server Config
 const PORT = 8888;
 
-// Server State
-const activeSessionSockets = [];
-
 const receiveData = (socket, data) => {
     const input = cleanInput(data);
-    switch(input) {
-        case 'help':
-            writeFileContents(socket, 'help')
-                .then(prompt(socket));
-            break;
-        case 'quit':
-            socket.end('See ya.\n');
-            break;
-        case 'sessions':
-            socket.write(activeSessionSockets);
-            break;
-        case 'cwd':
-            break;
-        default:
-            socket.write('Command not found. Type help for help.\n');
-            prompt(socket);
+    if (input.length > 0) {
+        processCommand(socket, input)
     }
 };
 
-const prompt = (socket) => {
-    socket.write(`\n> `);
-}
-
 // When a new telnet client connects
 const startSession = (socket) => {
-    activeSessionSockets.push({
-        socket,
-        cwd: '/'
-    });
-    socket.write(`There are ${activeSessionSockets.length} users online.\n`);
-    writeFileContents(socket, 'home');
+    // Create Session in server storage
+    sessionManager.create(socket);
+    // Setup Event Handlers
     socket.on('data', data => receiveData(socket, data));
-    socket.on('end', () => onSocketClose(socket));
-    console.log(activeSessionSockets);
-}
-
-// When a telnet client disconnects
-const onSocketClose = (socket) => {
-    const i = findIndex(activeSessionSockets, _s => socket === _s );
-    console.log(i);
-	if (i != -1) {
-		activeSessionSockets.splice(i, 1);
-	}
+    socket.on('end', () => sessionManager.remove(socket));
+    // Print Welcome Message
+    writeFileContents(socket, 'home')
+        .then(socket.printMessage(`\nThere are ${sessionManager.activeSessionCount()} sessions online.`))
 }
 
 const server = net.createServer().listen(PORT);

@@ -1,4 +1,19 @@
-Commands:
+General:
 
-help - displays this message
-home - displays home message
+help - displays this help information
+home - show the welcome message again
+env - displays your session information
+quit  - quits this session
+
+Applications:
+
+chat - Enter the chatroom
+print <file_name_here>
+    - view the file in the current directory
+contact - view my contact info
+
+Navigation:
+
+pwd - show your current directory
+cd - change your directory
+ls - show the contents of your current directory
