@@ -9,7 +9,8 @@ const activeSessions = [];
 const SOCKET_DECORATION = {
     env: {
         pwd: "/",
-        username: undefined
+        username: undefined,
+        inChat: false
     },
     getEnvSting: function () {
         return `pwd: ${this.env.pwd}`;

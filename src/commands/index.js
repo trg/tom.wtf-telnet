@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 const writeFileContents = require('../utils').writeFileContents;
-
+const chat = require('../chat');
 
 // TODO refactor validation into socket prototype (probably)
 const sanitizePathInput = (input) => {
@@ -21,7 +21,7 @@ const commands = {
         const dir = sanitizedPath(socket.env.pwd);
         fs.readdir(dir, (err, fileOrDirNames) => {
             if (err) {
-                socket.printMessage("Error");
+                socket.printMessage("!! Error listing directory");
                 return;
             }
             // TODO performance improve:
@@ -54,14 +54,28 @@ const commands = {
         const desiredDir = args[0];
         if (desiredDir === '/') {
             socket.env.pwd = '/';
-        } else if (desiredDir === '..' && socket.env.pwd !== '/') {
-            const parts = socket.env.pwd.split('/').filter(n => n !== '')
-            parts.pop();
-            socket.env.pwd = '/' + parts.join('/');
+        } else if (desiredDir === '..') {
+            if (socket.env.pwd !== '/') {
+                const parts = socket.env.pwd.split('/').filter(n => n !== '')
+                parts.pop();
+                socket.env.pwd = '/' + parts.join('/');
+            } else {
+                socket.printMessage("!! Cannot change to that directory.");
+            }
         } else {
-            socket.env.pwd = `${socket.env.pwd}${sanitizePathInput(desiredDir)}/`;
+            // TODO - bug when doing cd ../../
+            const newDir = `${socket.env.pwd}${sanitizePathInput(desiredDir)}/`;
+            const realPath = sanitizedPath(newDir);
+            if (fs.existsSync(realPath) && fs.lstatSync(realPath).isDirectory()) { // TODO - improve, confusion between "real" dir and sandboxed dir
+                socket.env.pwd = newDir;
+            } else {
+                socket.printMessage("!! Not a directory.");
+            }
         }
         socket.printMessage(`Your current directory is now ${socket.env.pwd}`);
+    },
+    "chat": (socket) => {
+        chat.enter(socket);
     },
     "help": (socket) => {
         writeFileContents(socket, 'help');

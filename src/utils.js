@@ -8,7 +8,8 @@ module.exports = {
             const filePath = `${__dirname}/../files/${relativeFilePath}`;
             fs.readFile(filePath, (err, data) => {
                 if (err) {
-                    reject(err);
+                    socket.printMessage("!! Could not open file.")
+                    resolve();
                 } else {
                     socket.printMessage(data, resolve);
                 }
