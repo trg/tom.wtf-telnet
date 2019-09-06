@@ -84,7 +84,7 @@ const commands = {
         writeFileContents(socket, 'home');
     },
     "env": (socket) => {
-        socket.printMessage(socket.getEnvSting());
+        socket.printMessage(socket.getEnvString());
     },
     "pwd": (socket) => {
         socket.printMessage(socket.env.pwd); 
@@ -101,7 +101,9 @@ module.exports = {
         const command = commandComponents[0];
         const args = commandComponents.slice(1);
         const commandMethod = commands[command];
-        if (commandMethod) {
+        if (socket.env.inChat) {
+            chat.processChatCommand(socket, input);
+        } else if (commandMethod) {
             socket.printMessage(`${' '.repeat(command.length)} \\_________`);
             commandMethod(socket, args);
         } else {

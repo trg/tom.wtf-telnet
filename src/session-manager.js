@@ -12,8 +12,11 @@ const SOCKET_DECORATION = {
         username: undefined,
         inChat: false
     },
-    getEnvSting: function () {
+    getEnvString: function () {
         return `pwd: ${this.env.pwd}`;
+    },
+    setUsername: function (username) {
+        this.env.username = username.substring(0, 12);
     },
     println: function (text) {
         this.write(`${text}\n`);
@@ -43,6 +46,10 @@ module.exports = {
 
     activeSessionCount: () => {
         return activeSessions.length;
+    },
+
+    getSessions: () => {
+        return activeSessions;
     },
 
     printEnv: (socket) => {
